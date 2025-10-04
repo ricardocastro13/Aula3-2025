@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <string.h>
 
+
 #include "debug.h"
 
 #define MAX_CLIENTS 128
@@ -13,6 +14,8 @@
 #include <sys/errno.h>
 
 #include "fifo.h"
+#include "sjf.h"
+#include "RR.h"
 
 #include "msg.h"
 #include "queue.h"
@@ -233,13 +236,12 @@ void check_blocked_queue(queue_t * blocked_queue, queue_t * command_queue, uint3
 
 static const char *SCHEDULER_NAMES[] = {
     "FIFO",
-/*
     "SJF",
     "RR",
-    "MLFQ",
-*/
+    /* "RR",
+       "MLFQ", */
     NULL
-};
+  };
 
 typedef enum  {
     NULL_SCHEDULER = -1,
@@ -268,6 +270,7 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
+
     // Parse arguments
     scheduler_en scheduler_type = get_scheduler(argv[1]);
     if (scheduler_type == NULL_SCHEDULER) {
@@ -282,8 +285,10 @@ int main(int argc, char *argv[]) {
     queue_t ready_queue = {.head = NULL, .tail = NULL};
     queue_t blocked_queue = {.head = NULL, .tail = NULL};
 
+
     // We only have a single CPU that is a pointer to the actively running PCB on the CPU
     pcb_t *CPU = NULL;
+
 
     int server_fd = setup_server_socket(SOCKET_PATH);
     if (server_fd < 0) {
@@ -292,6 +297,7 @@ int main(int argc, char *argv[]) {
     }
     printf("Scheduler server listening on %s...\n", SOCKET_PATH);
     uint32_t current_time_ms = 0;
+
     while (1) {
         // Check for new connections and/or instructions
         check_new_commands(&command_queue, &blocked_queue, &ready_queue, server_fd, current_time_ms);
@@ -309,6 +315,14 @@ int main(int argc, char *argv[]) {
         switch (scheduler_type) {
             case SCHED_FIFO:
                 fifo_scheduler(current_time_ms, &ready_queue, &CPU);
+                break;
+
+            case SCHED_SJF:
+                sjf_scheduler(current_time_ms, &ready_queue, &CPU);
+                break;
+
+            case SCHED_RR:
+                sjf_scheduler(current_time_ms, &ready_queue, &CPU);
                 break;
 
             default:
