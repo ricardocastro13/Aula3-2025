@@ -16,6 +16,7 @@
 #include "fifo.h"
 #include "sjf.h"
 #include "RR.h"
+#include "mlfq.h"
 
 #include "msg.h"
 #include "queue.h"
@@ -238,8 +239,7 @@ static const char *SCHEDULER_NAMES[] = {
     "FIFO",
     "SJF",
     "RR",
-    /* "RR",
-       "MLFQ", */
+    "MLFQ",
     NULL
   };
 
@@ -322,7 +322,12 @@ int main(int argc, char *argv[]) {
                 break;
 
             case SCHED_RR:
-                sjf_scheduler(current_time_ms, &ready_queue, &CPU);
+                static uint32_t slice_elapsed = 0;
+                rr_scheduler(current_time_ms, &ready_queue, &CPU, &slice_elapsed);
+                break;
+
+            case SCHED_MLFQ:
+                mlfq_scheduler(current_time_ms, &ready_queue, &CPU);
                 break;
 
             default:
@@ -330,11 +335,11 @@ int main(int argc, char *argv[]) {
                 break;
         }
 
-        // Simulate a tick
+
+
         usleep(TICKS_MS * 1000/2);
         current_time_ms += TICKS_MS;
     }
 
-    // Unreachable, because of the infinite loop
-    return 0;
+
 }

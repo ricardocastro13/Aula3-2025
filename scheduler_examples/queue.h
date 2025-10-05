@@ -3,22 +3,26 @@
 #include <stdint.h>
 
 typedef enum  {
-    TASK_COMMAND = 0,   // Task has connected and is waiting for instructions
-    TASK_BLOCKED,       // Task is blocked (waiting/IO wait)
-    TASK_RUNNING,       // Task is in the ready queue or currently running
-    TASK_STOPPED,       // Task has finished execution (sent DONE), waiting for more messages
-    TASK_TERMINATED,    // Task has been terminated and will be removed
+    TASK_COMMAND = 0,
+    TASK_BLOCKED,
+    TASK_RUNNING,
+    TASK_STOPPED,
+    TASK_TERMINATED,
 } task_status_en;
 
 // Define the Process Control Block (PCB) structure
 typedef struct pcb_st{
-    int32_t pid;                   // Process ID
-    task_status_en status;         // Current status of the task defined by the pcb
-    uint32_t time_ms;              // Time requested by application in milliseconds
-    uint32_t ellapsed_time_ms;     // Time ellapsed since start in milliseconds
-    uint32_t slice_start_ms;       // Time when the current time slice started
-    uint32_t sockfd;               // Socket file descriptor for communication with the application
-    uint32_t last_update_time_ms;  // Last time the PCB was updataed
+    int32_t pid;
+    task_status_en status;
+    uint32_t time_ms;
+    uint32_t ellapsed_time_ms;
+    uint32_t slice_start_ms;
+    uint32_t sockfd;
+    uint32_t last_update_time_ms;
+
+
+    uint32_t queue_level;
+    uint32_t quantum_used_ms;
 } pcb_t;
 
 // Define singly linked list elements

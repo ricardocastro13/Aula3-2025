@@ -1,4 +1,4 @@
-#include <stdio.h>
+    #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
 
@@ -34,7 +34,7 @@ static queue_elem_t *find_shortest_elem(queue_t *q) {
  * Escalonador SJF (não preemptivo)
  */
 void sjf_scheduler(uint32_t current_time_ms, queue_t *rq, pcb_t **cpu_task) {
-    // Se há processo em execução
+
     if (*cpu_task) {
         (*cpu_task)->ellapsed_time_ms += TICKS_MS;
         if ((*cpu_task)->ellapsed_time_ms >= (*cpu_task)->time_ms) {
@@ -50,16 +50,28 @@ void sjf_scheduler(uint32_t current_time_ms, queue_t *rq, pcb_t **cpu_task) {
         }
     }
 
-    // Se CPU está livre, escolher o processo mais curto
-    if (*cpu_task == NULL) {
-        queue_elem_t *best_elem = find_shortest_elem(rq);
-        if (best_elem != NULL) {
+
+    queue_elem_t *best_elem = find_shortest_elem(rq);
+    if (best_elem != NULL) {
+        pcb_t *best_pcb = best_elem->pcb;
+        uint32_t best_remaining = best_pcb->time_ms - best_pcb->ellapsed_time_ms;
+
+
+        if (*cpu_task == NULL ||
+            ((*cpu_task)->time_ms - (*cpu_task)->ellapsed_time_ms) > best_remaining) {
+
+
+            if (*cpu_task != NULL) {
+                enqueue_pcb(rq, *cpu_task);
+                DBG("SJF: preempção! Processo %d volta à fila", (*cpu_task)->pid);
+            }
+
+
             queue_elem_t *removed = remove_queue_elem(rq, best_elem);
             pcb_t *p = removed->pcb;
             free(removed);
             *cpu_task = p;
-            DBG("SJF: escolheu processo %d com %u ms restantes", p->pid,
-                p->time_ms - p->ellapsed_time_ms);
-        }
+            DBG("SJF: escolheu processo %d (%u ms restantes)", p->pid, best_remaining);
+            }
     }
 }

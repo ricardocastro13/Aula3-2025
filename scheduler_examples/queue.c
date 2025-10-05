@@ -3,8 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-pcb_t *new_pcb(pid_t pid, uint32_t sockfd, uint32_t time_ms) {
-    pcb_t * new_task = malloc(sizeof(pcb_t));
+pcb_t *new_pcb(int32_t pid, uint32_t sockfd, uint32_t time_ms) {
+    pcb_t *new_task = malloc(sizeof(pcb_t));
     if (!new_task) return NULL;
 
     new_task->pid = pid;
@@ -13,6 +13,11 @@ pcb_t *new_pcb(pid_t pid, uint32_t sockfd, uint32_t time_ms) {
     new_task->sockfd = sockfd;
     new_task->time_ms = time_ms;
     new_task->ellapsed_time_ms = 0;
+    new_task->last_update_time_ms = 0;
+
+    new_task->queue_level = 0;        // Para MLFQ
+    new_task->quantum_used_ms = 0;    // Para MLFQ
+
     return new_task;
 }
 
